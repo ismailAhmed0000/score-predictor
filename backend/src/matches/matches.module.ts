@@ -6,4 +6,4 @@ import { MatchesService } from './matches.service';
   controllers: [MatchController],
   providers: [MatchesService],
 })
-export class MatchModule {}
+export class MatchesModule {}
