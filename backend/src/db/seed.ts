@@ -4,19 +4,16 @@ import { db, client } from './index';
 import { users, teams, matches, matchPredictions } from './schema';
 
 async function seed() {
-  // Optional: wipe old data (dev only)
   await db.delete(matchPredictions);
   await db.delete(matches);
   await db.delete(users);
   await db.delete(teams);
 
-  // 1. Teams
   const [arsenal, chelsea, liverpool] = await db
     .insert(teams)
     .values([{ name: 'Arsenal' }, { name: 'Chelsea' }, { name: 'Liverpool' }])
     .returning();
 
-  // 2. Users (PINs are hashed — login with plain PIN below)
   const [alice, bob, charlie] = await db
     .insert(users)
     .values([
@@ -26,7 +23,6 @@ async function seed() {
     ])
     .returning();
 
-  // 3. Matches
   const [match1, match2, match3] = await db
     .insert(matches)
     .values([
@@ -48,36 +44,41 @@ async function seed() {
         kickoffAt: new Date('2026-06-20T15:00:00Z'),
         homeScore: 1,
         awayScore: 2,
+        topScorerName: 'Mohamed Salah',
+        topScorerGoals: 2,
         status: 'finished',
       },
     ])
     .returning();
 
-  // 4. Predictions
   await db.insert(matchPredictions).values([
     {
       userId: alice.id,
       matchId: match1.id,
       predictedHomeScore: 2,
       predictedAwayScore: 1,
+      predictedTopScorer: 'Bukayo Saka',
     },
     {
       userId: bob.id,
       matchId: match1.id,
       predictedHomeScore: 0,
       predictedAwayScore: 0,
+      predictedTopScorer: 'Cole Palmer',
     },
     {
       userId: alice.id,
       matchId: match3.id,
       predictedHomeScore: 2,
       predictedAwayScore: 2,
+      predictedTopScorer: 'Mohamed Salah',
     },
     {
       userId: charlie.id,
       matchId: match3.id,
       predictedHomeScore: 1,
-      predictedAwayScore: 2, // exact score — good for testing scoring
+      predictedAwayScore: 2,
+      predictedTopScorer: 'Mohamed Salah',
     },
   ]);
 
@@ -86,6 +87,11 @@ async function seed() {
   console.log('  Alice   / 1234');
   console.log('  Bob     / 5678');
   console.log('  Charlie / 9999');
+  console.log('');
+  console.log('Finished match 3 scoring (Charlie example):');
+  console.log('  Exact score 1-2 = 3 pts');
+  console.log('  Top scorer Salah = 10 pts + 2 goal bonus = 12 pts');
+  console.log('  Total for match 3 = 15 pts');
 
   await client.end();
   process.exit(0);

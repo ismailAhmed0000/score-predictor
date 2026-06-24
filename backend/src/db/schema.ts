@@ -31,6 +31,8 @@ export const matches = pgTable('matches', {
   kickoffAt: timestamp('kickoff_at').notNull(),
   homeScore: integer('home_score'),
   awayScore: integer('away_score'),
+  topScorerName: text('top_scorer_name'),
+  topScorerGoals: integer('top_scorer_goals'),
   status: text('status').notNull().default('scheduled'),
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -47,6 +49,7 @@ export const matchPredictions = pgTable(
       .references(() => matches.id),
     predictedHomeScore: integer('predicted_home_score').notNull(),
     predictedAwayScore: integer('predicted_away_score').notNull(),
+    predictedTopScorer: text('predicted_top_scorer'),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow(),
   },
