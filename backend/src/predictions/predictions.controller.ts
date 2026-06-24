@@ -13,7 +13,7 @@ import { PredictionsService } from './predictions.service';
 import { match } from 'assert';
 import { CreatePredictionDto } from './create-prediction.dto';
 
-@Controller('matches/:matchID/predictions')
+@Controller('matches/:matchId/predictions')
 @UseGuards(JwtAuthGuard)
 export class PredictionsController {
   constructor(private readonly PredictionSerice: PredictionsService) {}
