@@ -26,5 +26,5 @@ export function requireAdmin() {
 
 export function logout() {
   clearToken();
-  throw redirect({ to: '/login' });
+  window.location.href = '/login';
 }
