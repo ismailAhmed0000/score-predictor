@@ -14,6 +14,9 @@ export const Route = createFileRoute('/matches')({
   component: MatchesPage,
 });
 
+const inputClassName =
+  'w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none focus:border-gray-400';
+
 function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [error, setError] = useState('');
@@ -37,12 +40,12 @@ function MatchesPage() {
   }, [loadMatches]);
 
   if (loading) {
-    return <p className="text-slate-400">Loading matches…</p>;
+    return <p className="py-8 text-gray-500">Loading matches…</p>;
   }
 
   if (error) {
     return (
-      <p className="rounded-lg bg-red-500/10 px-4 py-3 text-red-400">{error}</p>
+      <p className="rounded-xl bg-red-50 px-4 py-3 text-red-600">{error}</p>
     );
   }
 
@@ -50,15 +53,15 @@ function MatchesPage() {
   const finished = matches.filter((m) => m.status === 'finished');
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-white">Matches</h1>
-      <p className="mt-1 text-slate-400">
+    <div className="py-6">
+      <h1 className="text-3xl font-bold text-gray-900">Match Day</h1>
+      <p className="mt-1 text-gray-500">
         Predict scores and top scorer before kickoff
       </p>
 
       {scheduled.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-white">Upcoming</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Upcoming</h2>
           <ul className="mt-4 grid gap-4">
             {scheduled.map((match) => (
               <MatchCard key={match.id} match={match} />
@@ -69,7 +72,7 @@ function MatchesPage() {
 
       {finished.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-white">Finished</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Finished</h2>
           <ul className="mt-4 grid gap-4">
             {finished.map((match) => (
               <MatchCard key={match.id} match={match} />
@@ -79,7 +82,7 @@ function MatchesPage() {
       )}
 
       {matches.length === 0 && (
-        <p className="mt-6 text-slate-400">No matches found.</p>
+        <p className="mt-6 text-gray-500">No matches found.</p>
       )}
     </div>
   );
@@ -154,21 +157,21 @@ function MatchCard({ match }: { match: Match }) {
   }
 
   return (
-    <li className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+    <li className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-gray-900">
             {match.homeTeam} vs {match.awayTeam}
           </h3>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-gray-500">
             Kickoff: {new Date(match.kickoffAt).toLocaleString()}
           </p>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-medium ${
             match.status === 'finished'
-              ? 'bg-slate-700 text-slate-300'
-              : 'bg-emerald-500/10 text-emerald-400'
+              ? 'bg-gray-100 text-gray-600'
+              : 'bg-gray-900 text-white'
           }`}
         >
           {match.status}
@@ -176,10 +179,10 @@ function MatchCard({ match }: { match: Match }) {
       </div>
 
       {match.status === 'finished' && (
-        <div className="mt-3 text-sm text-slate-300">
+        <div className="mt-3 text-sm text-gray-600">
           <p>
             Result:{' '}
-            <span className="font-medium text-emerald-400">
+            <span className="font-medium text-gray-900">
               {match.homeScore} – {match.awayScore}
             </span>
           </p>
@@ -192,7 +195,7 @@ function MatchCard({ match }: { match: Match }) {
       )}
 
       {prediction && (
-        <p className="mt-3 text-sm text-slate-400">
+        <p className="mt-3 text-sm text-gray-500">
           Your prediction: {prediction.predictedHomeScore} –{' '}
           {prediction.predictedAwayScore}
           {prediction.predictedTopScorer
@@ -202,51 +205,54 @@ function MatchCard({ match }: { match: Match }) {
       )}
 
       {isOpen && !loadingPrediction && (
-        <form onSubmit={onSubmit} className="mt-4 grid gap-3 border-t border-slate-800 pt-4">
+        <form
+          onSubmit={onSubmit}
+          className="mt-4 grid gap-3 border-t border-gray-100 pt-4"
+        >
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-400">Home score</span>
+              <span className="mb-1 block text-xs text-gray-500">Home score</span>
               <input
                 type="number"
                 min={0}
                 value={homeScore}
                 onChange={(e) => setHomeScore(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-emerald-500"
+                className={inputClassName}
                 required
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-400">Away score</span>
+              <span className="mb-1 block text-xs text-gray-500">Away score</span>
               <input
                 type="number"
                 min={0}
                 value={awayScore}
                 onChange={(e) => setAwayScore(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-emerald-500"
+                className={inputClassName}
                 required
               />
             </label>
           </div>
 
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-400">Top scorer</span>
+            <span className="mb-1 block text-xs text-gray-500">Top scorer</span>
             <input
               type="text"
               value={topScorer}
               onChange={(e) => setTopScorer(e.target.value)}
               placeholder="Mohamed Salah"
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-emerald-500"
+              className={inputClassName}
             />
           </label>
 
           {error && (
-            <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
+            <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
               {error}
             </p>
           )}
 
           {success && (
-            <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+            <p className="rounded-xl bg-green-50 px-3 py-2 text-sm text-green-700">
               {success}
             </p>
           )}
@@ -254,7 +260,7 @@ function MatchCard({ match }: { match: Match }) {
           <button
             type="submit"
             disabled={saving}
-            className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400 disabled:opacity-50"
+            className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
           >
             {saving ? 'Saving…' : prediction ? 'Update prediction' : 'Save prediction'}
           </button>
@@ -262,7 +268,7 @@ function MatchCard({ match }: { match: Match }) {
       )}
 
       {loadingPrediction && isOpen && (
-        <p className="mt-4 text-sm text-slate-500">Loading your prediction…</p>
+        <p className="mt-4 text-sm text-gray-500">Loading your prediction…</p>
       )}
     </li>
   );
