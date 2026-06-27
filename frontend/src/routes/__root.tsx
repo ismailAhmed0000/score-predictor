@@ -1,5 +1,6 @@
-import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
-import { isLoggedIn, logout } from "../lib/auth";
+import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
+import { isLoggedIn } from '../api/client';
+import { logout } from '../lib/auth';
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -20,15 +21,15 @@ function RootLayout() {
             <nav className="flex items-center gap-4">
               <Link
                 to="/matches"
-                className="text-sm text-slate-300 hover:text-white"
-                activeProps={{ className: "text-white font-medium" }}
+                className="text-sm text-slate-300 hover:text-white [&.active]:font-medium [&.active]:text-white"
+                activeProps={{ className: 'active' }}
               >
                 Matches
               </Link>
               <Link
                 to="/leaderboard"
-                className="text-sm text-slate-300 hover:text-white"
-                activeProps={{ className: "text-white font-medium" }}
+                className="text-sm text-slate-300 hover:text-white [&.active]:font-medium [&.active]:text-white"
+                activeProps={{ className: 'active' }}
               >
                 Leaderboard
               </Link>
