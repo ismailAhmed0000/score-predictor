@@ -1,4 +1,5 @@
 import {
+  boolean,
   integer,
   pgTable,
   serial,
@@ -11,6 +12,9 @@ export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   name: text('name').notNull().unique(),
   pinHash: text('pin_hash').notNull(),
+  isAdmin: boolean('is_admin').notNull().default(false),
+  lastIssuedPin: text('last_issued_pin'),
+  tournamentTopScorer: text('tournament_top_scorer'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 

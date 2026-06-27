@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { api, ApiError, setToken } from "../api/client";
+import { api, ApiError, setToken, setUser } from "../api/client";
 import { Logo } from "../components/Logo";
 import { redirectIfLoggedIn } from "../lib/auth";
 
@@ -25,9 +25,10 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const { accessToken } = await api.auth.login(name.trim(), pin);
+      const { accessToken, user } = await api.auth.login(name.trim(), pin);
       setToken(accessToken);
-      navigate({ to: "/matches" });
+      setUser(user);
+      navigate({ to: user.isAdmin ? '/admin' : '/matches' });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {

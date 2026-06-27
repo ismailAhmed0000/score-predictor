@@ -29,6 +29,20 @@
       "when": 1782315713174,
       "tag": "0003_stormy_mephistopheles",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782319000000,
+      "tag": "0004_tournament_top_scorer",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782320000000,
+      "tag": "0005_admin_users",
+      "breakpoints": true
     }
   ]
 }

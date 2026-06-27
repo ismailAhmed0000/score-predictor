@@ -16,7 +16,18 @@ export class LeaderboardService {
       .where(eq(matches.status, 'finished'));
 
     if (finishedMatches.length === 0) {
-      return [];
+      const allUsers = await this.dbb.select().from(users);
+      return allUsers
+        .map((user) => ({
+          userId: user.id,
+          name: user.name,
+          exactScorePoints: 0,
+          outcomePoints: 0,
+          topScorerPoints: 0,
+          goalBonusPoints: 0,
+          total: 0,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     const matchIds = finishedMatches.map((m) => m.id);
@@ -28,6 +39,7 @@ export class LeaderboardService {
       .where(inArray(matchPredictions.matchId, matchIds));
 
     const allUsers = await this.dbb.select().from(users);
+    const userById = new Map(allUsers.map((u) => [u.id, u]));
     const totalsByUserId = new Map(
       allUsers.map((u) => [
         u.id,
@@ -57,7 +69,8 @@ export class LeaderboardService {
         {
           predictedHomeScore: prediction.predictedHomeScore,
           predictedAwayScore: prediction.predictedAwayScore,
-          predictedTopScorer: prediction.predictedTopScorer,
+          predictedTopScorer:
+            userById.get(prediction.userId)?.tournamentTopScorer ?? null,
         },
         {
           homeScore: match.homeScore,

@@ -14,12 +14,33 @@ async function seed() {
     .values([{ name: 'Arsenal' }, { name: 'Chelsea' }, { name: 'Liverpool' }])
     .returning();
 
-  const [alice, bob, charlie] = await db
+  const [admin, alice, bob, charlie] = await db
     .insert(users)
     .values([
-      { name: 'Alice', pinHash: await bcrypt.hash('1234', 10) },
-      { name: 'Bob', pinHash: await bcrypt.hash('5678', 10) },
-      { name: 'Charlie', pinHash: await bcrypt.hash('9999', 10) },
+      {
+        name: 'Admin',
+        pinHash: await bcrypt.hash('0000', 10),
+        isAdmin: true,
+        lastIssuedPin: '0000',
+      },
+      {
+        name: 'Alice',
+        pinHash: await bcrypt.hash('1234', 10),
+        tournamentTopScorer: 'Bukayo Saka',
+        lastIssuedPin: '1234',
+      },
+      {
+        name: 'Bob',
+        pinHash: await bcrypt.hash('5678', 10),
+        tournamentTopScorer: 'Cole Palmer',
+        lastIssuedPin: '5678',
+      },
+      {
+        name: 'Charlie',
+        pinHash: await bcrypt.hash('9999', 10),
+        tournamentTopScorer: 'Mohamed Salah',
+        lastIssuedPin: '9999',
+      },
     ])
     .returning();
 
@@ -57,33 +78,32 @@ async function seed() {
       matchId: match1.id,
       predictedHomeScore: 2,
       predictedAwayScore: 1,
-      predictedTopScorer: 'Bukayo Saka',
     },
     {
       userId: bob.id,
       matchId: match1.id,
       predictedHomeScore: 0,
       predictedAwayScore: 0,
-      predictedTopScorer: 'Cole Palmer',
     },
     {
       userId: alice.id,
       matchId: match3.id,
       predictedHomeScore: 2,
       predictedAwayScore: 2,
-      predictedTopScorer: 'Mohamed Salah',
     },
     {
       userId: charlie.id,
       matchId: match3.id,
       predictedHomeScore: 1,
       predictedAwayScore: 2,
-      predictedTopScorer: 'Mohamed Salah',
     },
   ]);
 
   console.log('Seed complete');
-  console.log('Login test users:');
+  console.log('Admin login:');
+  console.log('  Admin   / 0000');
+  console.log('');
+  console.log('Participant logins:');
   console.log('  Alice   / 1234');
   console.log('  Bob     / 5678');
   console.log('  Charlie / 9999');

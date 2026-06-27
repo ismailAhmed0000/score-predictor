@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DRIZZLE } from 'src/db/database.module';
 import { db } from '../db';
@@ -32,8 +32,36 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync({
       sub: user.id,
       name: user.name,
+      isAdmin: user.isAdmin,
     });
 
-    return { accessToken, user: { id: user.id, name: user.name } };
+    return {
+      accessToken,
+      user: { id: user.id, name: user.name, isAdmin: user.isAdmin },
+    };
+  }
+
+  async getTournamentTopScorer(userId: number) {
+    const [user] = await this.dbb
+      .select({ tournamentTopScorer: users.tournamentTopScorer })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    return { tournamentTopScorer: user?.tournamentTopScorer ?? null };
+  }
+
+  async setTournamentTopScorer(userId: number, tournamentTopScorer: string) {
+    const trimmed = tournamentTopScorer.trim();
+    if (!trimmed) {
+      throw new BadRequestException('Top scorer name is required');
+    }
+
+    const [user] = await this.dbb
+      .update(users)
+      .set({ tournamentTopScorer: trimmed })
+      .where(eq(users.id, userId))
+      .returning({ tournamentTopScorer: users.tournamentTopScorer });
+
+    return { tournamentTopScorer: user.tournamentTopScorer };
   }
 }
