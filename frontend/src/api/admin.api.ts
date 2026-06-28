@@ -1,5 +1,4 @@
-import { API_URL } from './config';
-import { getToken, request } from './request';
+import { buildApiUrl, getToken, request } from './request';
 import type {
   AdminFixture,
   AdminParticipant,
@@ -14,7 +13,7 @@ import type {
 
 async function downloadCsv(path: string, filename: string) {
   const token = getToken();
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(buildApiUrl(path), {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 

@@ -38,6 +38,17 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   auth?: boolean;
 };
 
+export function buildApiUrl(path: string): string {
+  if (!/^https?:\/\//i.test(API_URL)) {
+    throw new ApiError(
+      'API URL is misconfigured. Set VITE_API_URL to your backend, e.g. https://your-app.up.railway.app',
+      0,
+    );
+  }
+
+  return new URL(path, `${API_URL.replace(/\/$/, '')}/`).href;
+}
+
 export async function request<T>(
   path: string,
   options: RequestOptions = {},
@@ -45,7 +56,7 @@ export async function request<T>(
   const { body, auth = true, headers, ...init } = options;
 
   const token = getToken();
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(buildApiUrl(path), {
     ...init,
     headers: {
       ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
