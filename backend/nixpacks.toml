@@ -1,0 +1,8 @@
+[phases.build]
+cmds = ["npm install", "npm run build"]
+
+[phases.build.env]
+NPM_CONFIG_PRODUCTION = "false"
+
+[start]
+cmd = "npm run start:prod"
