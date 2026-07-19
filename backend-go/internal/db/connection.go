@@ -1,26 +1,26 @@
 package db
 
 import (
-	"context"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-func isSupabaseURL(connString string) bool {
-	return strings.Contains(connString, "supabase.co") ||
+func usesTransactionPooler(connString string) bool {
+	return strings.Contains(connString, ":6543") ||
 		strings.Contains(connString, "pooler.supabase.com")
 }
 
-func NewPool(ctx context.Context, connString string) (*pgxpool.Pool, error) {
-	cfg, err := pgxpool.ParseConfig(connString)
-	if err != nil {
-		return nil, err
-	}
-
-	if isSupabaseURL(connString) {
-		cfg.ConnConfig.TLSConfig = nil 
-	}
-
-	return pgxpool.NewWithConfig(ctx, cfg)
+// NewConnection opens a GORM/Postgres connection. PreferSimpleProtocol is
+// forced on for Supabase's transaction pooler, which does not support
+// prepared statements across pooled connections.
+func NewConnection(connString string) (*gorm.DB, error) {
+	return gorm.Open(postgres.New(postgres.Config{
+		DSN:                  connString,
+		PreferSimpleProtocol: usesTransactionPooler(connString),
+	}), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Warn),
+	})
 }

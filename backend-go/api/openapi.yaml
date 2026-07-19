@@ -1,0 +1,617 @@
+openapi: 3.0.3
+info:
+  title: Score Predictor API
+  version: 1.0.0
+servers:
+  - url: /
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      operationId: loginUser
+      tags: [public]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /auth/me/tournament-top-scorer:
+    get:
+      operationId: getTournamentTopScorer
+      tags: [user]
+      responses:
+        '200':
+          description: Current user's top scorer pick
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TournamentTopScorerResponse'
+    put:
+      operationId: setTournamentTopScorer
+      tags: [user]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetTournamentTopScorerRequest'
+      responses:
+        '200':
+          description: Updated top scorer pick
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TournamentTopScorerResponse'
+
+  /matches:
+    get:
+      operationId: listMatches
+      tags: [user]
+      responses:
+        '200':
+          description: All matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Match'
+
+  /matches/{matchId}/predictions/me:
+    get:
+      operationId: getMyPrediction
+      tags: [user]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      responses:
+        '200':
+          description: Caller's prediction for this match, or null
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+
+  /matches/{matchId}/predictions:
+    post:
+      operationId: createPrediction
+      tags: [user]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequest'
+      responses:
+        '200':
+          description: Created prediction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+    put:
+      operationId: updatePrediction
+      tags: [user]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequest'
+      responses:
+        '200':
+          description: Updated prediction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [user]
+      responses:
+        '200':
+          description: Leaderboard standings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeaderboardEntry'
+
+  /admin/fixtures:
+    get:
+      operationId: listFixtures
+      tags: [admin]
+      responses:
+        '200':
+          description: All fixtures with prediction counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Fixture'
+    post:
+      operationId: createFixture
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFixtureRequest'
+      responses:
+        '200':
+          description: Created fixture
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fixture'
+
+  /admin/fixtures/{matchId}/result:
+    patch:
+      operationId: setFixtureResult
+      tags: [admin]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetFixtureResultRequest'
+      responses:
+        '200':
+          description: Updated fixture
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fixture'
+
+  /admin/fixtures/{matchId}/reopen:
+    patch:
+      operationId: reopenFixture
+      tags: [admin]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      responses:
+        '200':
+          description: Reopened fixture
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fixture'
+
+  /admin/fixtures/{matchId}:
+    delete:
+      operationId: deleteFixture
+      tags: [admin]
+      parameters:
+        - $ref: '#/components/parameters/MatchId'
+      responses:
+        '200':
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedResponse'
+
+  /admin/participants:
+    get:
+      operationId: listParticipants
+      tags: [admin]
+      responses:
+        '200':
+          description: All non-admin participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Participant'
+    post:
+      operationId: createParticipant
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateParticipantRequest'
+      responses:
+        '200':
+          description: Created participant with issued PIN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateParticipantResponse'
+
+  /admin/participants/{userId}:
+    delete:
+      operationId: deleteParticipant
+      tags: [admin]
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Deletion result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedResponse'
+
+  /admin/predictions:
+    get:
+      operationId: listAllPredictions
+      tags: [admin]
+      responses:
+        '200':
+          description: All predictions across all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminPrediction'
+
+  /admin/top-scorer-picks:
+    get:
+      operationId: listTopScorerPicks
+      tags: [admin]
+      responses:
+        '200':
+          description: Every participant's top scorer pick
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopScorerPick'
+
+  /admin/export/standings.csv:
+    get:
+      operationId: exportStandingsCsv
+      tags: [admin]
+      responses:
+        '200':
+          description: Standings CSV
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /admin/export/pins.csv:
+    get:
+      operationId: exportPinsCsv
+      tags: [admin]
+      responses:
+        '200':
+          description: PINs CSV
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /admin/recalculate:
+    post:
+      operationId: recalculateLeaderboard
+      tags: [admin]
+      responses:
+        '200':
+          description: Recalculated leaderboard standings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeaderboardEntry'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    MatchId:
+      name: matchId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [name, pin]
+      properties:
+        name:
+          type: string
+        pin:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/AuthUser'
+
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        isAdmin:
+          type: boolean
+
+    TournamentTopScorerResponse:
+      type: object
+      properties:
+        tournamentTopScorer:
+          type: string
+          nullable: true
+
+    SetTournamentTopScorerRequest:
+      type: object
+      required: [tournamentTopScorer]
+      properties:
+        tournamentTopScorer:
+          type: string
+
+    Match:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        kickoffAt:
+          type: string
+          format: date-time
+        homeScore:
+          type: integer
+          nullable: true
+        awayScore:
+          type: integer
+          nullable: true
+        topScorerName:
+          type: string
+          nullable: true
+        topScorerGoals:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        homeTeam:
+          type: string
+        awayTeam:
+          type: string
+
+    PredictionRequest:
+      type: object
+      required: [predictedHomeScore, predictedAwayScore]
+      properties:
+        predictedHomeScore:
+          type: integer
+        predictedAwayScore:
+          type: integer
+        predictedTopScorer:
+          type: string
+          nullable: true
+
+    Prediction:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        matchId:
+          type: integer
+          format: int64
+        predictedHomeScore:
+          type: integer
+        predictedAwayScore:
+          type: integer
+        predictedTopScorer:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        exactScorePoints:
+          type: integer
+        outcomePoints:
+          type: integer
+        topScorerPoints:
+          type: integer
+        goalBonusPoints:
+          type: integer
+        total:
+          type: integer
+
+    Fixture:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        kickoffAt:
+          type: string
+          format: date-time
+        homeScore:
+          type: integer
+          nullable: true
+        awayScore:
+          type: integer
+          nullable: true
+        topScorerName:
+          type: string
+          nullable: true
+        topScorerGoals:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        homeTeam:
+          type: string
+        awayTeam:
+          type: string
+        predictionCount:
+          type: integer
+
+    CreateFixtureRequest:
+      type: object
+      required: [homeTeam, awayTeam, kickoffAt]
+      properties:
+        homeTeam:
+          type: string
+        awayTeam:
+          type: string
+        kickoffAt:
+          type: string
+          format: date-time
+
+    SetFixtureResultRequest:
+      type: object
+      required: [homeScore, awayScore]
+      properties:
+        homeScore:
+          type: integer
+        awayScore:
+          type: integer
+        topScorerName:
+          type: string
+          nullable: true
+        topScorerGoals:
+          type: integer
+          nullable: true
+
+    DeletedResponse:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+
+    Participant:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        isAdmin:
+          type: boolean
+        tournamentTopScorer:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateParticipantRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        pin:
+          type: string
+          nullable: true
+
+    CreateParticipantResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/Participant'
+        pin:
+          type: string
+
+    AdminPrediction:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
+        userName:
+          type: string
+        matchId:
+          type: integer
+          format: int64
+        homeTeam:
+          type: string
+        awayTeam:
+          type: string
+        kickoffAt:
+          type: string
+          format: date-time
+        matchStatus:
+          type: string
+        predictedHomeScore:
+          type: integer
+        predictedAwayScore:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+
+    TopScorerPick:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tournamentTopScorer:
+          type: string
+          nullable: true

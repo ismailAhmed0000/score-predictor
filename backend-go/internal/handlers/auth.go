@@ -1,61 +1,49 @@
 package handlers
 
 import (
-	"context"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 
 	"score-predictor-backend/internal/auth"
+	"score-predictor-backend/internal/gen/api"
+	"score-predictor-backend/internal/models"
 )
 
 type AuthHandler struct {
-	Pool        *pgxpool.Pool
+	DB          *gorm.DB
 	JWTSecret   string
 	ExpiresDays int
 }
 
-type loginRequest struct {
-	Name string `json:"name"`
-	Pin  string `json:"pin"`
-}
-
-func (h *AuthHandler) Login(c *fiber.Ctx) error {
-	var req loginRequest
+func (h *AuthHandler) LoginUser(c *fiber.Ctx) error {
+	var req api.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	var (
-		id       int64
-		name     string
-		pinHash  string
-		isAdmin  bool
-	)
-	err := h.Pool.QueryRow(context.Background(),
-		`SELECT id, name, pin_hash, is_admin FROM users WHERE name = $1`,
-		req.Name,
-	).Scan(&id, &name, &pinHash, &isAdmin)
-	if err != nil {
+	var user models.User
+	if err := h.DB.Where("name = ?", req.Name).First(&user).Error; err != nil {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid name or PIN")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(pinHash), []byte(req.Pin)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PinHash), []byte(req.Pin)); err != nil {
 		return fiber.NewError(fiber.StatusUnauthorized, "Invalid name or PIN")
 	}
 
-	token, err := auth.IssueToken(h.JWTSecret, id, name, isAdmin, h.ExpiresDays)
+	token, err := auth.IssueToken(h.JWTSecret, user.ID, user.Name, user.IsAdmin, h.ExpiresDays)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to issue token")
 	}
 
-	return c.JSON(fiber.Map{
-		"accessToken": token,
-		"user": fiber.Map{
-			"id":      id,
-			"name":    name,
-			"isAdmin": isAdmin,
+	return c.JSON(api.LoginResponse{
+		AccessToken: ptr(token),
+		User: &api.AuthUser{
+			Id:      ptr(user.ID),
+			Name:    ptr(user.Name),
+			IsAdmin: ptr(user.IsAdmin),
 		},
 	})
 }
@@ -63,54 +51,31 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 func (h *AuthHandler) GetTournamentTopScorer(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(int64)
 
-	var topScorer *string
-	err := h.Pool.QueryRow(context.Background(),
-		`SELECT tournament_top_scorer FROM users WHERE id = $1`,
-		userID,
-	).Scan(&topScorer)
-	if err != nil {
+	var user models.User
+	if err := h.DB.Select("tournament_top_scorer").First(&user, userID).Error; err != nil {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
 
-	return c.JSON(fiber.Map{"tournamentTopScorer": topScorer})
-}
-
-type setTopScorerRequest struct {
-	TournamentTopScorer string `json:"tournamentTopScorer"`
+	return c.JSON(api.TournamentTopScorerResponse{TournamentTopScorer: user.TournamentTopScorer})
 }
 
 func (h *AuthHandler) SetTournamentTopScorer(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(int64)
 
-	var req setTopScorerRequest
+	var req api.SetTournamentTopScorerRequest
 	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	trimmed := trimSpace(req.TournamentTopScorer)
+	trimmed := strings.TrimSpace(req.TournamentTopScorer)
 	if trimmed == "" {
 		return fiber.NewError(fiber.StatusBadRequest, "Top scorer name is required")
 	}
 
-	var updated string
-	err := h.Pool.QueryRow(context.Background(),
-		`UPDATE users SET tournament_top_scorer = $1 WHERE id = $2 RETURNING tournament_top_scorer`,
-		trimmed, userID,
-	).Scan(&updated)
-	if err != nil {
+	result := h.DB.Model(&models.User{}).Where("id = ?", userID).Update("tournament_top_scorer", trimmed)
+	if result.Error != nil || result.RowsAffected == 0 {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
 
-	return c.JSON(fiber.Map{"tournamentTopScorer": updated})
-}
-
-func trimSpace(s string) string {
-	start, end := 0, len(s)
-	for start < end && (s[start] == ' ' || s[start] == '\t' || s[start] == '\n') {
-		start++
-	}
-	for end > start && (s[end-1] == ' ' || s[end-1] == '\t' || s[end-1] == '\n') {
-		end--
-	}
-	return s[start:end]
+	return c.JSON(api.TournamentTopScorerResponse{TournamentTopScorer: &trimmed})
 }
