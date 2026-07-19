@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS match_predictions;
+DROP TABLE IF EXISTS matches;
+DROP TABLE IF EXISTS teams;
+DROP TABLE IF EXISTS users;

@@ -1,0 +1,21 @@
+cat > /Users/ismailahmed/2026/score-predictor/backend-go/.gitignore << 'EOF'
+# Binaries
+/bin/
+/tmp/
+*.exe
+
+# Go build artifacts
+*.test
+*.out
+
+# Env files
+.env
+.env.local
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+EOF
